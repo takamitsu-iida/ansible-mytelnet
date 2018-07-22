@@ -1,0 +1,9 @@
+#
+# for mac environment
+#
+
+#
+# ルータ
+#
+[telnet_routers]
+tr1 ansible_host=172.28.128.3

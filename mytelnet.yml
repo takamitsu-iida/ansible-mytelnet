@@ -1,0 +1,71 @@
+---
+#
+# Ciscoルータにコマンドを打ち込みます
+#
+# 2018/07/10 初版
+#
+# Takamitsu IIDA (@takamitsu-iida)
+
+# Ansible2.5に含まれているtelnetモジュールはPython3で動かない。
+# またdelegate_toを使っての踏み台も動かないので独自に作成したモジュールを使ってtelnetする。
+
+# 設定パラメータ
+#
+# command ---  コマンドの配列
+# networkos --- 装置種別（デフォルトはiosで、現在のところiosしか試していない）
+# host --- ターゲットのアドレス
+# port --- ポート番号（デフォルトは23）
+# user --- ユーザ名
+# password --- パスワード
+# become --- 管理者モードになるか
+# become_pass --- 管理者モードのパスワード
+#
+# 戻り値は stdout 配列。送り込んだコマンド配列に対応して格納される。
+
+- name: execute command on cisco devices
+  hosts: tr1
+  gather_facts: False
+  strategy: linear  # free
+  serial: 0
+
+  tasks:
+
+    - name: send commands
+      # no_log: True
+      delegate_to: localhost
+      mytelnet:
+        host: "{{ ansible_host }}"
+        network_os: "{{ ansible_network_os }}"
+        user: "{{ ansible_user }}"
+        password: "{{ ansible_ssh_pass }}"
+        become: "{{ ansible_become }}"
+        become_pass: "{{ ansible_become_pass }}"
+        commands:
+          - command: clear counters gig 2
+            prompt: '\[confirm\]'
+            answer: y
+          - show run int gig 2
+          - show process cpu | inc CPU
+      register: r
+
+    - name: show stdout
+      debug:
+        msg: |
+          {% for s in r.stdout %}
+          {{ s }}
+          -----
+          {% endfor %}
+
+    - name: command history (for debug purpose)
+      debug: var=r.command_history
+
+    - name: prompt history (for debug purpose)
+      debug: var=r.prompt_history
+
+    # - name: raw outputs (debug)
+    #   debug:
+    #     msg: |
+    #       {% for s in r.raw_outputs %}
+    #       {{ s }}
+    #       -----
+    #       {% endfor %}
