@@ -90,11 +90,11 @@ ansible_become_pass: cisco
 
 # プレイブック
 
-接続方法にnetwork_cliを使えるわけではないので、mytelnetモジュールに接続先やユーザ名、パスワードを個別に渡さなければいけません。
-
-値はgroup_varsやhost_varsで定義したものを引っ張ってくればいいでしょう。
+接続方法にnetwork_cliを使えるわけではないので、mytelnetモジュールに接続先やユーザ名、パスワードを個別に渡さなければいけません。それら値はgroup_varsやhost_varsで定義したものを引っ張ってくればいいでしょう。
 
 commands配列はios_commandモジュールと同じ方法で設定します。
+
+delegate_toは必須です。localhostもしくは踏み台になるサーバを指定してください。
 
 network_osは'ios'のみ認識します。'ios'の場合はenable処理を自動でやっているのと、最後の切断処理で'quit'を打ち込んでいます。'ios'ではない装置の場合は適当な文字列を設定してください。
 

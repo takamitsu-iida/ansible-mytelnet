@@ -183,6 +183,9 @@ def on_become(module):
   if get_prompt(module).endswith(b'#'):
     return
 
+  if not module.params['become']:
+    return
+
   passwd = module.params['become_pass']
   if passwd:
     network_os = module.params['network_os']
@@ -202,11 +205,15 @@ def logout(module):
 
   network_os = module.params['network_os']
   if network_os == 'ios':
-    command = 'quit'
-    tn.write(to_bytes('%s\r' % command))
-    add_command_history(module, command)
+    send_command(module, 'quit')
 
   tn.close()
+
+
+def send_command(module, command):
+  tn = get_connection(module)
+  tn.write(to_bytes('%s\r' % command))
+  add_command_history(module, command)
 
 
 def send_and_wait(module, command, prompt=None, answer=None):
@@ -217,8 +224,7 @@ def send_and_wait(module, command, prompt=None, answer=None):
   command_timeout = get_command_timeout(module)
 
   try:
-    tn.write(to_bytes('%s\r' % command))
-    add_command_history(module, command)
+    send_command(module, command)
 
     if prompt:
       index, match, out = tn.expect([to_bytes(prompt)], command_timeout)
@@ -230,9 +236,9 @@ def send_and_wait(module, command, prompt=None, answer=None):
       add_raw_outputs(module, out)
 
       if answer:
-        tn.write(to_bytes('%s\r' % answer))
-        add_command_history(module, answer)
+        send_command(module, answer)
         # in case of no output like this, we need to wait for the second prompt
+        # simply wait 1 second here.
         # csr#>
         # csr#>
         sleep(1)
