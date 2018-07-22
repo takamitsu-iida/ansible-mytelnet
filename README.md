@@ -2,9 +2,9 @@
 
 Ansible2.4からコアモジュールに含まれるようになったtelnetモジュールは、マニュアルに記載の通りsshが有効になってない機器に乗り込んでsshを初期設定するのが主な利用シーンなので、高度なことを期待してはいけないのですが・・・
 
-このtelnetモジュールはpython3で動きませんし、なによりdelegate_toを使っての踏み台経由のtelnetが動かないので大変困ってしまいました。
+本家のtelnetモジュールはpython3で動きませんし、なによりdelegate_toを使っての踏み台経由のtelnetが動かないので大変困ってしまいました。
 
-設定で回避するとかそんなレベルではなさそうでしたので、本家のtelnetモジュールの利用は諦めて改めて作成しました。
+設定で回避するとかそんなレベルではなさそうでしたので、本家のtelnetモジュールの利用は諦めて改めてモジュールを作成しました。
 
 <br><br>
 
@@ -96,6 +96,8 @@ ansible_become_pass: cisco
 
 commands配列はios_commandモジュールと同じ方法で設定します。
 
+network_osは'ios'のみ認識します。'ios'の場合はenable処理を自動でやっているのと、最後の切断処理で'quit'を打ち込んでいます。'ios'ではない装置の場合は適当な文字列を設定してください。
+
 ```yml
 ---
 #
@@ -161,6 +163,8 @@ commands配列はios_commandモジュールと同じ方法で設定します。
 ```
 
 # 実行例
+
+csr1000vをターゲットに実行した例です。
 
 ```bash
 iida-macbook-pro:ansible-mytelnet iida$ ansible-playbook mytelnet.yml
