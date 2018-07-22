@@ -1,12 +1,10 @@
 # mytelnetモジュール
 
-Ansible2.4からコアモジュールに含まれるようになったtelnetモジュールは、マニュアルに記載の通りsshが有効になってない機器に乗り込んでsshを初期設定するのが主な利用シーンです。
+Ansible2.4からコアモジュールに含まれるようになったtelnetモジュールは、マニュアルに記載の通りsshが有効になってない機器に乗り込んでsshを初期設定するのが主な利用シーンなので、高度なことを期待してはいけないのですが・・・
 
-- This is mostly to be used for enabling ssh on devices that only have telnet enabled by default.
+このtelnetモジュールはpython3で動きませんし、なによりdelegate_toを使っての踏み台経由のtelnetが動かないので大変困ってしまいました。
 
-このtelnetモジュールはpython3で動きませんし、なによりdelegate_toを使っての踏み台経由のtelnetが動かず、困ってしまいました。
-
-設定で回避するとか、そんなレベルではなさそうでしたので、改めてtelnetモジュールを作成しました。
+設定で回避するとかそんなレベルではなさそうでしたので、本家のtelnetモジュールの利用は諦めて改めて作成しました。
 
 <br><br>
 
