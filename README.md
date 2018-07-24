@@ -41,12 +41,16 @@ Ansible2.4からコアモジュールに含まれるようになったtelnetモ�
 
 自作のモジュールはlibraryフォルダに、module_utilsはlibrary/module_utilsに配置するように設定します。
 
+actionプラグインを使ってインベントリ情報を吸い上げていますので、そのパスも必要です。
+
 ```ini
 [defaults]
 
 library = ./library
 
 module_utils = ./library/module_utils
+
+action_plugins = ./plugins/action
 ```
 
 <br><br>
@@ -72,7 +76,8 @@ tr1 ansible_host=172.28.128.3
 # group_vars ファイル
 
 接続に必要な設定情報をgroup_varsかhost_varsに設定します。
-キー名はプレイブック側で参照しやすいものであれば何でも構いません。
+
+`ansible_connection` は設定しないでください。
 
 ```yml
 ---
@@ -90,23 +95,16 @@ ansible_become_pass: cisco
 
 # プレイブック
 
-接続方法にnetwork_cliを使えるわけではないので、mytelnetモジュールに接続先やユーザ名、パスワードを個別に渡さなければいけません。それら値はgroup_varsやhost_varsで定義したものを引っ張ってくればいいでしょう。
-
 commands配列はios_commandモジュールと同じ方法で設定します。
 
 delegate_toは必須です。localhostもしくは踏み台になるサーバを指定してください。
 
-network_osは'ios'のみ認識します。'ios'の場合はenable処理を自動でやっているのと、最後の切断処理で'quit'を打ち込んでいます。'ios'ではない装置の場合は適当な文字列を設定してください。
+network_osは'ios'のみ認識します。
+'ios'の場合はterminal lenght設定とenable処理を自動で行います。
+'ios'ではない装置の場合はコマンドとして打ち込んでください。
 
 ```yml
 ---
-#
-# Ciscoルータにコマンドを打ち込みます
-#
-# 2018/07/10 初版
-#
-# Takamitsu IIDA (@takamitsu-iida)
-
 # 設定パラメータ
 #
 # command ---  コマンドの配列
@@ -117,11 +115,19 @@ network_osは'ios'のみ認識します。'ios'の場合はenable処理を自動
 # password --- パスワード
 # become --- 管理者モードになるか
 # become_pass --- 管理者モードのパスワード
-#
-# 戻り値は stdout 配列。送り込んだコマンド配列に対応して格納される。
+
+# タスク設定
+# delegate_toは必須。localhostもしくは踏み台を指定すること。
+
+# 戻り値
+# stdout 配列。送り込んだコマンド配列に対応して格納される。
+
+# 禁止パラメータ
+# ansible_connection: network_cli
+# これが設定されていると動作しない
 
 - name: execute command on cisco devices
-  hosts: tr1
+  hosts: tr1  # telnet_routers
   gather_facts: False
   strategy: linear  # free
   serial: 0
@@ -132,12 +138,14 @@ network_osは'ios'のみ認識します。'ios'の場合はenable処理を自動
       # no_log: True
       delegate_to: localhost
       mytelnet:
-        host: "{{ ansible_host }}"
-        network_os: "{{ ansible_network_os }}"
-        user: "{{ ansible_user }}"
-        password: "{{ ansible_ssh_pass }}"
-        become: "{{ ansible_become }}"
-        become_pass: "{{ ansible_become_pass }}"
+        # これらはインベントリから自動設定されるので不要
+        # network_os: "{{ ansible_network_os }}"
+        # host: "{{ ansible_host }}"
+        # user: "{{ ansible_user }}"
+        # port: "{{ ansible_port }}"
+        # password: "{{ ansible_password }}"
+        # become: "{{ ansible_become }}"
+        # become_pass: "{{ ansible_become_pass }}"
         commands:
           - command: clear counters gig 2
             prompt: '\[confirm\]'
@@ -159,7 +167,6 @@ network_osは'ios'のみ認識します。'ios'の場合はenable処理を自動
 
     - name: prompt history (for debug purpose)
       debug: var=r.prompt_history
-
 ```
 
 # 実行例

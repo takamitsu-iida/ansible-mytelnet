@@ -7,3 +7,4 @@
 #
 [telnet_routers]
 tr1 ansible_host=172.28.128.3
+tr2 ansible_host=172.28.128.3

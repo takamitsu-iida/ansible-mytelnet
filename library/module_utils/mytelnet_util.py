@@ -177,6 +177,8 @@ def on_login(module):
   if network_os == 'ios':
     send_and_wait(module, 'terminal length 0')
     send_and_wait(module, 'terminal width 512')
+  elif network_os == 'fujitsu_srs':
+    send_and_wait(module, 'terminal pager disable')
 
 
 def on_become(module):
@@ -192,6 +194,13 @@ def on_become(module):
     if network_os == 'ios':
       # in case of ios, send 'enable' and wait for Password:
       send_and_wait(module, 'enable', prompt='[Pp]assword: ?', answer=passwd)
+      prompt = get_prompt(module)
+      if not prompt or not prompt.endswith(b'#'):
+        get_connection(module).close()
+        module.fail_json(msg='failed to elevate privilege to enable mode still at prompt [%s]' % prompt)
+    elif network_os == 'fujitsu_srs':
+      # in case of fujitsu_srs, send 'admin' and wait for Password:
+      send_and_wait(module, 'admin', prompt='[Pp]assword: ?', answer=passwd)
       prompt = get_prompt(module)
       if not prompt or not prompt.endswith(b'#'):
         get_connection(module).close()

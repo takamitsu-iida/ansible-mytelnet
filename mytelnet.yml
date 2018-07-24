@@ -6,9 +6,6 @@
 #
 # Takamitsu IIDA (@takamitsu-iida)
 
-# Ansible2.5に含まれているtelnetモジュールはPython3で動かない。
-# またdelegate_toを使っての踏み台も動かないので独自に作成したモジュールを使ってtelnetする。
-
 # 設定パラメータ
 #
 # command ---  コマンドの配列
@@ -19,11 +16,19 @@
 # password --- パスワード
 # become --- 管理者モードになるか
 # become_pass --- 管理者モードのパスワード
-#
-# 戻り値は stdout 配列。送り込んだコマンド配列に対応して格納される。
+
+# タスク設定
+# delegate_toは必須。localhostもしくは踏み台を指定すること。
+
+# 戻り値
+# stdout 配列。送り込んだコマンド配列に対応して格納される。
+
+# 禁止パラメータ
+# ansible_connection: network_cli
+# これが設定されていると動作しない
 
 - name: execute command on cisco devices
-  hosts: tr1
+  hosts: tr1  # telnet_routers
   gather_facts: False
   strategy: linear  # free
   serial: 0
@@ -34,17 +39,19 @@
       # no_log: True
       delegate_to: localhost
       mytelnet:
-        host: "{{ ansible_host }}"
-        network_os: "{{ ansible_network_os }}"
-        user: "{{ ansible_user }}"
-        password: "{{ ansible_ssh_pass }}"
-        become: "{{ ansible_become }}"
-        become_pass: "{{ ansible_become_pass }}"
+        # これらはインベントリから自動設定されるので不要
+        # network_os: "{{ ansible_network_os }}"
+        # host: "{{ ansible_host }}"
+        # user: "{{ ansible_user }}"
+        # port: "{{ ansible_port }}"
+        # password: "{{ ansible_password }}"
+        # become: "{{ ansible_become }}"
+        # become_pass: "{{ ansible_become_pass }}"
         commands:
-          - command: clear counters gig 2
-            prompt: '\[confirm\]'
-            answer: y
-          - show run int gig 2
+          # - command: clear counters gig 2
+          #   prompt: '\[confirm\]'
+          #   answer: y
+          # - show run int gig 2
           - show process cpu | inc CPU
       register: r
 
@@ -61,11 +68,3 @@
 
     - name: prompt history (for debug purpose)
       debug: var=r.prompt_history
-
-    # - name: raw outputs (debug)
-    #   debug:
-    #     msg: |
-    #       {% for s in r.raw_outputs %}
-    #       {{ s }}
-    #       -----
-    #       {% endfor %}
