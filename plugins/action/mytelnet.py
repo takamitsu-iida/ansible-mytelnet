@@ -41,7 +41,6 @@ class ActionModule(_ActionModule):
     # display.v(str(self._play_context.become))       #=> #False
     # display.v(str(self._play_context.become_pass))  #=> None
 
-    #
     # hostvarsを取り出す
     #
     inventory_hostname = task_vars.get('inventory_hostname')
@@ -53,7 +52,7 @@ class ActionModule(_ActionModule):
     remote_addr = hostvars.get('remote_addr') or hostvars.get('ansible_ssh_host') or hostvars.get('ansible_host')
     # port = hostvars.get('port') or hostvars.get('ansible_ssh_port') or hostvars.get('ansible_port', 23)
     remote_user = hostvars.get('remote_user') or hostvars.get('ansible_ssh_user') or hostvars.get('ansible_user')
-    password = hostvars.get('password') or hostvars.get('ansible_ssh_pass') or hostvars.get('ansible_password')
+    password = hostvars.get('password') or hostvars.get('ansible_ssh_pass') or hostvars.get('ansible_password') or hostvars.get('ansible_pass') # ansible_pass is wrong setting
     become = hostvars.get('become') or hostvars.get('ansible_become', False)
     become_pass = hostvars.get('become_pass') or hostvars.get('ansible_become_password') or hostvars.get('ansible_become_pass')
     network_os = hostvars.get('ansible_network_os')

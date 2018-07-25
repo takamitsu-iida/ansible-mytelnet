@@ -35,7 +35,7 @@ def get_raw_outputs(module):
 
 
 def add_raw_outputs(module, output):
-  get_raw_outputs(module).append(output)
+  get_raw_outputs(module).append(to_text(output, errors='surrogate_or_strict'))
 
 
 def get_command_history(module):
@@ -139,8 +139,7 @@ def login(module):
       if index < 0:
         tn.close()
         module.fail_json(msg='Failed to expect login prompt: %s' % to_text(out))
-      matched_prompt = match.group().strip()
-      add_prompt_history(module, matched_prompt)
+      _match_prompt(module, match)
       add_raw_outputs(module, out)
       tn.write(to_bytes('%s\r' % user))
 
@@ -149,8 +148,7 @@ def login(module):
       if index < 0:
         tn.close()
         module.fail_json(msg='Failed to expect password prompt: %s' % to_text(out))
-      matched_prompt = match.group().strip()
-      add_prompt_history(module, matched_prompt)
+      _match_prompt(module, match)
       add_raw_outputs(module, out)
       tn.write(to_bytes('%s\r' % password))
 
@@ -159,8 +157,7 @@ def login(module):
     if index < 0:
       tn.close()
       module.fail_json(msg='Wrong password or failed to expect prompt: %s' % to_text(out))
-    matched_prompt = match.group().strip()
-    add_prompt_history(module, matched_prompt)
+    _match_prompt(module, match)
     add_raw_outputs(module, out)
 
     on_login(module)
@@ -182,7 +179,7 @@ def on_login(module):
 
 
 def on_become(module):
-  if get_prompt(module).endswith(b'#'):
+  if get_prompt(module).endswith('#'):
     return
 
   if not module.params['become']:
@@ -195,7 +192,7 @@ def on_become(module):
       # in case of ios, send 'enable' and wait for Password:
       send_and_wait(module, 'enable', prompt='[Pp]assword: ?', answer=passwd)
       prompt = get_prompt(module)
-      if not prompt or not prompt.endswith(b'#'):
+      if not prompt or not prompt.endswith('#'):
         get_connection(module).close()
         module.fail_json(msg='failed to elevate privilege to enable mode still at prompt [%s]' % prompt)
     elif network_os == 'fujitsu_srs':
@@ -225,6 +222,16 @@ def send_command(module, command):
   add_command_history(module, command)
 
 
+def _match_prompt(module, match):
+  """regex match object to prompt string
+  """
+  if not match:
+    return ''
+  matched_prompt = to_text(match.group()).strip()
+  add_prompt_history(module, matched_prompt)
+  return matched_prompt
+
+
 def send_and_wait(module, command, prompt=None, answer=None):
   """Send a command and wait for prompts
   """
@@ -240,11 +247,10 @@ def send_and_wait(module, command, prompt=None, answer=None):
       if index < 0:
         tn.close()
         module.fail_json(msg='Failed to expect prompt: %s : %s' % (command, prompt))
-      matched_prompt = match.group().strip()
-      add_prompt_history(module, matched_prompt)
+      matched_prompt = _match_prompt(module, match)
       add_raw_outputs(module, out)
 
-      if answer:
+      if answer != None:
         send_command(module, answer)
         # in case of no output like this, we need to wait for the second prompt
         # simply wait 1 second here.
@@ -258,11 +264,21 @@ def send_and_wait(module, command, prompt=None, answer=None):
     if index < 0:
       tn.close()
       module.fail_json(msg='Failed to expect prompts: %s' % command)
-    matched_prompt = match.group().strip()
-    add_prompt_history(module, matched_prompt)
+    matched_prompt = _match_prompt(module, match)
     add_raw_outputs(module, out)
 
-    return to_text(out, errors='surrogate_or_strict')
+    # remove command echo and tailing prompt
+    # lines = out.splitlines()
+    # if len(lines) >= 1:
+    #   lines = lines[1:-1]
+    # out = '\n'.join(lines)
+    cleaned = []
+    for line in to_text(out, errors='surrogate_or_strict').splitlines():
+      if (command and line.strip() == command.strip()) or (matched_prompt and (matched_prompt == line.strip())):
+        continue
+      cleaned.append(line)
+
+    return '\n'.join(cleaned).strip()
 
   except EOFError as e:
     tn.close()
@@ -286,13 +302,6 @@ def run_commands(module):
       answer = None
 
     out = send_and_wait(module, command, prompt=prompt, answer=answer)
-
-    # remove command echo and tailing prompt
-    lines = out.splitlines()
-    if len(lines) >= 1:
-      lines = lines[1:-1]
-    out = '\n'.join(lines)
-
     responses.append(out)
 
     if i != len(commands) -1:

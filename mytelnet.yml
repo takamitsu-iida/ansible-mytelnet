@@ -48,10 +48,10 @@
         # become: "{{ ansible_become }}"
         # become_pass: "{{ ansible_become_pass }}"
         commands:
-          # - command: clear counters gig 2
-          #   prompt: '\[confirm\]'
-          #   answer: y
-          # - show run int gig 2
+          - command: clear counters gig 2
+            prompt: '\[confirm\]'
+            answer: y
+          - show run int gig 2
           - show process cpu | inc CPU
       register: r
 
@@ -59,6 +59,7 @@
       debug:
         msg: |
           {% for s in r.stdout %}
+          -----
           {{ s }}
           -----
           {% endfor %}

@@ -3,7 +3,7 @@ ansible_ssh_common_args: ""
 
 ansible_network_os: ios
 ansible_user: cisco
-ansible_ssh_pass: cisco
+ansible_password: cisco
 ansible_become: yes
 ansible_become_method: enable
 ansible_become_pass: cisco
