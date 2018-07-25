@@ -17,22 +17,22 @@ Ansible2.4からコアモジュールに含まれるようになったtelnetモ�
 ├── ansible.cfg
 ├── inventories
 │   ├── development
+│   ├── mac
 │   │   ├── group_vars
 │   │   │   └── telnet_routers.yml
 │   │   ├── host_vars
 │   │   └── hosts
-│   └── mac
-│       ├── group_vars
-│       │   └── telnet_routers.yml
-│       ├── host_vars
-│       └── hosts
+│   └── production
 ├── library
 │   ├── module_utils
 │   │   └── mytelnet_util.py
 │   └── mytelnet.py
 ├── log
 ├── mytelnet.yml
-└── vscode.code-workspace
+├── plugins
+│   ├── action
+│   │   └── mytelnet.py
+│   └── filter
 ```
 
 <br><br>
@@ -41,7 +41,7 @@ Ansible2.4からコアモジュールに含まれるようになったtelnetモ�
 
 自作のモジュールはlibraryフォルダに、module_utilsはlibrary/module_utilsに配置するように設定します。
 
-actionプラグインを使ってインベントリ情報を吸い上げていますので、そのパスも必要です。
+またactionプラグインを使ってインベントリ情報を吸い上げていますので、そのパスも必要です。
 
 ```ini
 [defaults]
@@ -85,7 +85,7 @@ ansible_ssh_common_args: ""
 
 ansible_network_os: ios
 ansible_user: cisco
-ansible_ssh_pass: cisco
+ansible_password: cisco
 ansible_become: yes
 ansible_become_method: enable
 ansible_become_pass: cisco
@@ -100,8 +100,8 @@ commands配列はios_commandモジュールと同じ方法で設定します。
 delegate_toは必須です。localhostもしくは踏み台になるサーバを指定してください。
 
 network_osは'ios'のみ認識します。
-'ios'の場合はterminal lenght設定とenable処理を自動で行います。
-'ios'ではない装置の場合はコマンドとして打ち込んでください。
+'ios'の場合はterminal length 0の設定とenable処理を自動で行います。
+'ios'ではない装置の場合はそのへんの処理をコマンドとして打ち込んでください。
 
 ```yml
 ---
