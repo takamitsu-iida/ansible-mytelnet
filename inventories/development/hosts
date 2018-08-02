@@ -2,36 +2,6 @@
 # development
 #
 
-#
-# すべてのネットワーク機器を指定するときはdeivcesを指定する
-#
-[devices]
-
-[devices:children]
-routers
-switches
-
-#
-# ルータ
-#
-[routers]
-
-[routers:children]
-11f_routers
-18f_routers
-
-[11f_routers]
-# ログイン関連情報はgroup_varsに設定し、ここには記述しない
-r1 ansible_host=172.20.0.21
-r2 ansible_host=172.20.0.22
-r3 ansible_host=172.20.0.23
-r4 ansible_host=172.20.0.24
-
-[18f_routers]
-# ログイン関連情報はgroup_varsに設定し、ここには記述しない
-r12 ansible_host=172.18.0.12
-r13 ansible_host=172.18.0.13
-
 [telnet_routers]
 tr1 ansible_host=172.20.0.21
 tr2 ansible_host=172.20.0.22
@@ -39,17 +9,6 @@ tr3 ansible_host=172.20.0.23
 tr4 ansible_host=172.20.0.24
 tr12 ansible_host=172.18.0.12
 tr13 ansible_host=172.18.0.13
-
-#
-# スイッチ
-#
-[switches]
-
-[switches:children]
-srs_switches
-
-[srs_switches]
-s1 ansible_host=192.168.1.200
 
 [telnet_switches]
 ts1 ansible_host=192.168.1.200

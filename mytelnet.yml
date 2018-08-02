@@ -30,14 +30,13 @@
 - name: execute command on cisco devices
   hosts: tr1  # telnet_routers
   gather_facts: False
-  strategy: linear  # free
-  serial: 0
 
   tasks:
 
     - name: send commands
       # no_log: True
-      delegate_to: localhost
+      # delegate_to: localhost
+      delegate_to: pg04
       mytelnet:
         # これらはインベントリから自動設定されるので不要
         # network_os: "{{ ansible_network_os }}"
