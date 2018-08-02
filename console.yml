@@ -1,0 +1,38 @@
+---
+#
+# コンソールサーバ経由でコマンドを打ち込みます
+#
+# 2018/08/02 初版
+#
+# Takamitsu IIDA (@takamitsu-iida)
+
+- name: execute command on cisco devices
+  hosts: cr12
+  gather_facts: False
+
+  tasks:
+
+    - name: send commands
+      # no_log: True
+      delegate_to: localhost
+      mytelnet:
+        mode: console
+        commands:
+          - show version
+          - show process cpu | inc CPU
+      register: r
+
+    - name: show stdout
+      debug:
+        msg: |
+          {% for s in r.stdout %}
+          -----
+          {{ s }}
+          -----
+          {% endfor %}
+
+    - name: command history (for debug purpose)
+      debug: var=r.command_history
+
+    - name: prompt history (for debug purpose)
+      debug: var=r.prompt_history

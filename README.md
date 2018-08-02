@@ -236,5 +236,178 @@ PLAY RECAP *********************************************************************
 tr1                        : ok=4    changed=0    unreachable=0    failed=0
 
 iida-macbook-pro:ansible-mytelnet iida$
+```
 
+<br><br>
+
+# コンソールサーバを使う場合
+
+インベントリ
+
+```ini
+[console_routers]
+cr12 ansible_host=10.35.185.2 ansible_port=2011
+```
+
+group_vars
+
+```yml
+---
+
+# 設定しないこと
+# ansible_connection: network_cli
+
+ansible_network_os: ios
+ansible_become: yes
+ansible_become_method: enable
+ansible_become_pass: cisco
+```
+
+プレイブック
+
+```yml
+---
+#
+# コンソールサーバ経由でコマンドを打ち込みます
+#
+# 2018/08/02 初版
+#
+# Takamitsu IIDA (@takamitsu-iida)
+
+- name: execute command on cisco devices
+  hosts: cr12
+  gather_facts: False
+
+  tasks:
+
+    - name: send commands
+      # no_log: True
+      delegate_to: localhost
+      mytelnet:
+        mode: console
+        commands:
+          - show version
+          - show process cpu | inc CPU
+      register: r
+
+    - name: show stdout
+      debug:
+        msg: |
+          {% for s in r.stdout %}
+          -----
+          {{ s }}
+          -----
+          {% endfor %}
+
+    - name: command history (for debug purpose)
+      debug: var=r.command_history
+
+    - name: prompt history (for debug purpose)
+      debug: var=r.prompt_history
+
+```
+
+実行例。
+
+```bash
+iida-macbook-pro:ansible-mytelnet iida$ ansible-playbook console.yml
+
+PLAY [execute command on cisco devices] **************************************************
+
+TASK [send commands] *********************************************************************
+ [WARNING]: Module did not set no_log for become_pass
+
+ [WARNING]: Module did not set no_log for password
+
+ok: [cr12 -> localhost]
+
+TASK [show stdout] ***********************************************************************
+ok: [cr12] => {}
+
+MSG:
+
+-----
+Cisco IOS Software, C181X Software (C181X-ADVIPSERVICESK9-M), Version 15.1(4)M12a, RELEASE SOFTWARE (fc1)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2016 by Cisco Systems, Inc.
+Compiled Tue 04-Oct-16 02:58 by prod_rel_team
+
+ROM: System Bootstrap, Version 12.3(8r)YH6, RELEASE SOFTWARE (fc1)
+
+r12 uptime is 3 days, 2 hours, 57 minutes
+System returned to ROM by reload at 12:04:13 UTC Mon Jan 2 2006
+System restarted at 11:59:51 UTC Mon Jan 2 2006
+System image file is "flash:c181x-advipservicesk9-mz.151-4.M12a.bin"
+Last reload type: Normal Reload
+
+
+This product contains cryptographic features and is subject to United
+States and local country laws governing import, export, transfer and
+use. Delivery of Cisco cryptographic products does not imply
+third-party authority to import, export, distribute or use encryption.
+Importers, exporters, distributors and users are responsible for
+compliance with U.S. and local country laws. By using this product you
+agree to comply with applicable laws and regulations. If you are unable
+to comply with U.S. and local laws, return this product immediately.
+
+A summary of U.S. laws governing Cisco cryptographic products may be found at:
+http://www.cisco.com/wwl/export/crypto/tool/stqrg.html
+
+If you require further assistance please contact us by sending email to
+export@cisco.com.
+
+Cisco 1812-J (MPC8500) processor (revision 0x400) with 236544K/25600K bytes of memory.
+Processor board ID FHK113718U0, with hardware revision 0000
+
+10 FastEthernet interfaces
+1 ISDN Basic Rate interface
+1 Virtual Private Network (VPN) Module
+31360K bytes of ATA CompactFlash (Read/Write)
+
+
+License Info:
+
+License UDI:
+
+-------------------------------------------------
+Device#	  PID			SN
+-------------------------------------------------
+*0  	  CISCO1812-J/K9        FHK113718U0
+
+
+
+Configuration register is 0x2102
+-----
+-----
+CPU utilization for five seconds: 0%/0%; one minute: 0%; five minutes: 0%
+-----
+
+
+
+TASK [command history (for debug purpose)] ***********************************************
+ok: [cr12] => {
+    "r.command_history": [
+        "terminal length 0",
+        "terminal width 512",
+        "enable",
+        "cisco",
+        "show version",
+        "show process cpu | inc CPU",
+        "quit"
+    ]
+}
+
+TASK [prompt history (for debug purpose)] ************************************************
+ok: [cr12] => {
+    "r.prompt_history": [
+        "r12>",
+        "Password:",
+        "r12#"
+    ]
+}
+
+PLAY RECAP *******************************************************************************
+cr12                       : ok=4    changed=0    unreachable=0    failed=0
+
+iida-macbook-pro:ansible-mytelnet iida$
 ```

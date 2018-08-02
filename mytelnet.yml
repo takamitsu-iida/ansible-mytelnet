@@ -35,8 +35,8 @@
 
     - name: send commands
       # no_log: True
-      # delegate_to: localhost
-      delegate_to: pg04
+      delegate_to: localhost
+      # delegate_to: pg04
       mytelnet:
         # これらはインベントリから自動設定されるので不要
         # network_os: "{{ ansible_network_os }}"
@@ -46,11 +46,16 @@
         # password: "{{ ansible_password }}"
         # become: "{{ ansible_become }}"
         # become_pass: "{{ ansible_become_pass }}"
+        host: 10.35.185.2
+        port: 2011
+        mode: console
+        password: ""
+        user: ""
         commands:
-          - command: clear counters gig 2
-            prompt: '\[confirm\]'
-            answer: y
-          - show run int gig 2
+          # - command: clear counters gig 2
+          #   prompt: '\[confirm\]'
+          #   answer: y
+          # - show run int gig 2
           - show process cpu | inc CPU
       register: r
 

@@ -10,8 +10,9 @@ tr4 ansible_host=172.20.0.24
 tr12 ansible_host=172.18.0.12
 tr13 ansible_host=172.18.0.13
 
-[telnet_switches]
-ts1 ansible_host=192.168.1.200
+[console_routers]
+cr12 ansible_host=10.35.185.2 ansible_port=2011
+cr13 ansible_host=10.35.185.2 ansible_port=2012
 
 #
 # 踏み台
