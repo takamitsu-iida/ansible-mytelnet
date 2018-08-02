@@ -12,34 +12,29 @@ Ansible2.4からコアモジュールに含まれるようになったtelnetモ�
 
 ```bash
 .
-├── LICENSE
 ├── README.md
 ├── ansible.cfg
 ├── inventories
-│   ├── development
-│   ├── mac
-│   │   ├── group_vars
-│   │   │   └── telnet_routers.yml
-│   │   ├── host_vars
-│   │   └── hosts
-│   └── production
+│   └── mac
+│       ├── group_vars
+│       │   └── telnet_routers.yml
+│       ├── host_vars
+│       └── hosts
 ├── library
-│   ├── module_utils
-│   │   └── mytelnet_util.py
 │   └── mytelnet.py
-├── log
+├── module_utils
+│   └── mytelnet_util.py
 ├── mytelnet.yml
 ├── plugins
-│   ├── action
-│   │   └── mytelnet.py
-│   └── filter
+│   └── action
+│       └── mytelnet.py
 ```
 
 <br><br>
 
 # ansible.cfg
 
-自作のモジュールはlibraryフォルダに、module_utilsはlibrary/module_utilsに配置するように設定します。
+自作のモジュールはlibraryフォルダに、module_utilsはmodule_utilsに配置するように設定します。
 
 またactionプラグインを使ってインベントリ情報を吸い上げていますので、そのパスも必要です。
 
@@ -48,7 +43,7 @@ Ansible2.4からコアモジュールに含まれるようになったtelnetモ�
 
 library = ./library
 
-module_utils = ./library/module_utils
+module_utils = ./module_utils
 
 action_plugins = ./plugins/action
 ```
