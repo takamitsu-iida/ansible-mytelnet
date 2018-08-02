@@ -50,7 +50,7 @@ class ActionModule(_ActionModule):
     # hostvarsから情報を取り出す
     #
     remote_addr = hostvars.get('remote_addr') or hostvars.get('ansible_ssh_host') or hostvars.get('ansible_host')
-    # port = hostvars.get('port') or hostvars.get('ansible_ssh_port') or hostvars.get('ansible_port', 23)
+    port = hostvars.get('port') or hostvars.get('ansible_ssh_port') or hostvars.get('ansible_port', 23)
     remote_user = hostvars.get('remote_user') or hostvars.get('ansible_ssh_user') or hostvars.get('ansible_user')
     password = hostvars.get('password') or hostvars.get('ansible_ssh_pass') or hostvars.get('ansible_password') or hostvars.get('ansible_pass') # ansible_pass is wrong setting
     become = hostvars.get('become') or hostvars.get('ansible_become', False)
@@ -87,6 +87,8 @@ class ActionModule(_ActionModule):
     if not self._task.args.get('host') and remote_addr:
       self._task.args['host'] = remote_addr
 
+    if not self._task.args.get('port') and port:
+      self._task.args['port'] = port
     if not self._task.args.get('port') or self._task.args.get('port') == 22:
       self._task.args['port'] = 23
 

@@ -116,6 +116,8 @@ def get_connection(module):
   except OSError as e:
     module.fail_json(msg='Failed to connect target host: %s' % to_text(e))
 
+  tn.set_debuglevel(10)
+
   module.connection = tn
   return module.connection
 
@@ -133,7 +135,14 @@ def login(module):
   login_prompts = get_login_prompts(module)
   password_prompts = get_password_prompts(module)
 
+  mode = module.params['mode']
+
   try:
+
+    if mode == 'console':
+      sleep(2)
+      tn.write(b'\r')
+
     if user:
       index, match, out = tn.expect(login_prompts, login_timeout)
       if index < 0:

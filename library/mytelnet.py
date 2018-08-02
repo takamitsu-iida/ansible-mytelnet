@@ -148,7 +148,8 @@ def main():
     connect_timeout=dict(default=10, type='int'),
     login_timeout=dict(default=5, type='int'),
     command_timeout=dict(default=5, type='int'),
-    pause=dict(default=1, type='int')
+    pause=dict(default=1, type='int'),
+    mode=dict(default='telnet', type='str')
     )
 
   module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
