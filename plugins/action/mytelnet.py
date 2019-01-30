@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=W0611,C0111,C0412
+# pylint: disable=W0212,E0611,C0111
+# W0212:Access to a protected member _role of a client class
+# E0611:No name 'urllib' in module '_MovedItems'
+# C0111:Missing class docstring
 
 # (c) 2018, Takamitsu IIDA (@takamitsu-iida)
 #
@@ -19,19 +22,54 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+
+import os
+import re
+import time
+
 from ansible.plugins.action.normal import ActionModule as _ActionModule
 
 try:
+  # pylint: disable=W0611
+  # W0611:Unused display imported from __main__
   from __main__ import display
 except ImportError:
+  # pylint: disable=C0412
+  # C0412:Imports from package ansible are not grouped
   from ansible.utils.display import Display
   display = Display()
 
 
+PRIVATE_KEYS_RE = re.compile('__.+__')
+
+
 class ActionModule(_ActionModule):
+
+  def get_working_path(self):
+    cwd = self._loader.get_basedir()
+    if self._task._role is not None:
+      cwd = self._task._role._role_path
+    return cwd
+
+
+  def write_log(self, hostname, contents):
+    log_path = self.get_working_path() + '/log'
+    if not os.path.exists(log_path):
+      os.mkdir(log_path)
+    # tstamp = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(time.time()))
+    tstamp = time.strftime("%Y-%m-%d__%H:%M:%S", time.localtime(time.time()))
+    filename = '{0}/{1}_{2}.log'.format(log_path, hostname, tstamp)
+    open(filename, 'w').write(contents)
+
+    return filename
+
 
   def run(self, tmp=None, task_vars=None):
     del tmp  # tmp no longer has any effect
+
+    #
+    # pre process
+    #
 
     # self._play_contextから情報を取り出しても踏み台を踏んだときはうまくいかない
     #
@@ -40,6 +78,9 @@ class ActionModule(_ActionModule):
     # display.v(str(self._play_context.password))     #=> None
     # display.v(str(self._play_context.become))       #=> #False
     # display.v(str(self._play_context.become_pass))  #=> None
+
+    if not hasattr(self._play_context, 'delegate_to'):
+      return dict(failed=True, msg='mytelnet module require delegate_to directive but not set')
 
     # hostvarsを取り出す
     #
@@ -107,5 +148,19 @@ class ActionModule(_ActionModule):
     if not self._task.args.get('network_os') and network_os:
       self._task.args['network_os'] = network_os
 
+    #
+    # run module
+    #
+
     result = super(ActionModule, self).run(task_vars=task_vars)
+
+    #
+    # post process
+    #
+
+    if self._task.args.get('log') and result.get('__log__'):
+      log_path = self.write_log(inventory_hostname, result['__log__'])
+      result['log_path'] = log_path
+      del result['__log__']
+
     return result

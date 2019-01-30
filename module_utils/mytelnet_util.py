@@ -20,8 +20,10 @@
 # https://docs.python.jp/3/library/telnetlib.html
 
 import re
-import telnetlib
 from time import sleep
+
+# import telnetlib
+from ansible.module_utils.telnetlib import Telnet
 
 from ansible.module_utils._text import to_text, to_bytes
 from ansible.module_utils.network.common.utils import to_list
@@ -112,7 +114,8 @@ def get_connection(module):
 
   # try to connect target host using telnetlib.Telnet
   try:
-    tn = telnetlib.Telnet(host, port=port, timeout=connect_timeout)
+    # tn = telnetlib.Telnet(host, port=port, timeout=connect_timeout)
+    tn = Telnet(host, port=port, timeout=connect_timeout)
   except OSError as e:
     module.fail_json(msg='Failed to connect target host: %s' % to_text(e))
 
@@ -141,7 +144,7 @@ def login(module):
 
     if mode == 'console':
       sleep(2)
-      tn.write(b'\r')
+      tn.write(b'\n')
 
     if user:
       index, match, out = tn.expect(login_prompts, login_timeout)
@@ -150,7 +153,7 @@ def login(module):
         module.fail_json(msg='Failed to expect login prompt: %s' % to_text(out))
       _match_prompt(module, match)
       add_raw_outputs(module, out)
-      tn.write(to_bytes('%s\r' % user))
+      tn.write(to_bytes('%s\n' % user))
 
     if password:
       index, match, out = tn.expect(password_prompts, login_timeout)
@@ -159,7 +162,7 @@ def login(module):
         module.fail_json(msg='Failed to expect password prompt: %s' % to_text(out))
       _match_prompt(module, match)
       add_raw_outputs(module, out)
-      tn.write(to_bytes('%s\r' % password))
+      tn.write(to_bytes('%s\n' % password))
 
     # wait for command prompt
     index, match, out = tn.expect(command_prompts, login_timeout)
@@ -183,7 +186,7 @@ def on_login(module):
   if network_os == 'ios':
     send_and_wait(module, 'terminal length 0')
     send_and_wait(module, 'terminal width 512')
-  elif network_os == 'fujitsu_srs':
+  elif network_os == 'fujitsu_sir' or network_os == 'fujitsu_srs':
     send_and_wait(module, 'terminal pager disable')
 
 
@@ -204,8 +207,8 @@ def on_become(module):
       if not prompt or not prompt.endswith('#'):
         get_connection(module).close()
         module.fail_json(msg='failed to elevate privilege to enable mode still at prompt [%s]' % prompt)
-    elif network_os == 'fujitsu_srs':
-      # in case of fujitsu_srs, send 'admin' and wait for Password:
+    elif network_os == 'fujitsu_sir' or network_os == 'fujitsu_srs':
+      # in case of fujitsu device, send 'admin' and wait for Password:
       send_and_wait(module, 'admin', prompt='[Pp]assword: ?', answer=passwd)
       prompt = get_prompt(module)
       if not prompt or not prompt.endswith(b'#'):
@@ -221,13 +224,15 @@ def logout(module):
   network_os = module.params['network_os']
   if network_os == 'ios':
     send_command(module, 'quit')
+  elif network_os == 'fujitsu_sir' or network_os == 'fujitsu_srs':
+    send_command(module, 'exit')
 
   tn.close()
 
 
 def send_command(module, command):
   tn = get_connection(module)
-  tn.write(to_bytes('%s\r' % command))
+  tn.write(to_bytes('%s\n' % command))
   add_command_history(module, command)
 
 

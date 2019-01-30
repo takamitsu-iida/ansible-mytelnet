@@ -22,11 +22,18 @@ ANSIBLE_METADATA = {'metadata_version': '1.1', 'status': ['preview'], 'supported
 DOCUMENTATION = '''
 ---
 module: mytelnet
+
 short_description: Executes a low-down and dirty telnet command
+
 version_added: 2.6
+
 description:
   - Executes a low-down and dirty telnet command
   - This is mostly to be used for enabling ssh on devices that only have telnet enabled by default.
+
+author:
+  - Takamitsu IIDA (@takamitsu-iida)
+
 options:
   commands:
     description:
@@ -74,8 +81,14 @@ options:
       - Seconds to pause between each command issued
     default: 1
 
-author:
-  - Takamitsu IIDA (@takamitsu-iida)
+  log:
+    description:
+      - Create a log.
+        The log file is written to the C(log) folder in the playbook root directory or
+        role root directory, if playbook is part of an ansible role.
+        If the directory does not exist, it is created.
+    type: bool
+    default: 'false'
 '''
 
 EXAMPLES = '''
@@ -117,6 +130,11 @@ stdout_lines:
   type: list
   returned: always
   sample: [ ['...', '...'], ['...'], ['...'] ]
+
+log_path:
+  description: The full path to the log file
+  returned: when log is yes
+  type: string
 '''
 
 from ansible.module_utils._text import to_text
@@ -149,8 +167,10 @@ def main():
     login_timeout=dict(default=5, type='int'),
     command_timeout=dict(default=5, type='int'),
     pause=dict(default=1, type='int'),
-    mode=dict(default='telnet', type='str')
-    )
+    mode=dict(default='telnet', type='str'),
+    log=dict(default=False, type='bool'),
+    debug=dict(default=False, type='bool')
+  )
 
   module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
 
@@ -168,11 +188,19 @@ def main():
   }
 
   # for debug purpose
-  result.update({
-    'prompt_history': module.prompt_history,
-    'command_history': module.command_history,
-    'raw_outputs': module.raw_outputs
-  })
+  if module.params['debug'] is True:
+    result.update({
+      'prompt_history': module.prompt_history,
+      'command_history': module.command_history,
+      'raw_outputs': module.raw_outputs
+    })
+
+  # save to logfile
+  # __log__ key will be removed by action plugin
+  if module.params['log']:
+    result.update({
+      '__log__': '\n'.join(responses)
+    })
 
   module.exit_json(**result)
 

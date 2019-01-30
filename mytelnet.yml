@@ -28,7 +28,7 @@
 # これが設定されていると動作しない
 
 - name: execute command on cisco devices
-  hosts: tr1  # telnet_routers
+  hosts: cr12  # telnet_routers
   gather_facts: False
 
   tasks:
