@@ -1,8 +1,10 @@
 # mytelnetモジュール
 
-Ansible2.4からコアモジュールに含まれるようになったtelnetモジュールは、マニュアルに記載の通りsshが有効になってない機器に乗り込んでsshを初期設定するのが主な利用シーンなので、高度なことを期待してはいけないのですが・・・
+Ansible2.4からコアモジュールに含まれるようになったtelnetモジュールは、
+マニュアルに記載の通りsshが有効になってない機器に乗り込んでsshを初期設定するのが主な利用シーンなので、
+高度なことを期待してはいけないのですが・・・
 
-本家のtelnetモジュールはpython3で動きませんし、なによりdelegate_toを使っての踏み台経由のtelnetが動かないので大変困ってしまいました。
+delegate_toを使っての踏み台経由のtelnetが動かないので大変困ってしまいました。
 
 設定で回避するとかそんなレベルではなさそうでしたので、本家のtelnetモジュールの利用は諦めて改めてモジュールを作成しました。
 
@@ -10,11 +12,21 @@ Ansible2.4からコアモジュールに含まれるようになったtelnetモ�
 
 # ファイル構成
 
-```bash
+```text
 .
+├── LICENSE
 ├── README.md
 ├── ansible.cfg
+├── console.yml
 ├── inventories
+│   ├── development
+│   │   ├── group_vars
+│   │   │   ├── all.yml
+│   │   │   ├── bastion.yml
+│   │   │   ├── console_routers.yml
+│   │   │   └── telnet_routers.yml
+│   │   ├── host_vars
+│   │   └── hosts
 │   └── mac
 │       ├── group_vars
 │       │   └── telnet_routers.yml
@@ -23,11 +35,13 @@ Ansible2.4からコアモジュールに含まれるようになったtelnetモ�
 ├── library
 │   └── mytelnet.py
 ├── module_utils
-│   └── mytelnet_util.py
+│   ├── mytelnet_util.py
+│   └── telnetlib.py
 ├── mytelnet.yml
 ├── plugins
 │   └── action
 │       └── mytelnet.py
+└── vscode.code-workspace
 ```
 
 <br><br>
@@ -133,7 +147,7 @@ network_osは'ios'のみ認識します。
       # no_log: True
       delegate_to: localhost
       mytelnet:
-        # これらはインベントリから自動設定されるので不要
+        # これらはインベントリに設定していれば自動設定されるので不要
         # network_os: "{{ ansible_network_os }}"
         # host: "{{ ansible_host }}"
         # user: "{{ ansible_user }}"
@@ -410,4 +424,20 @@ PLAY RECAP *********************************************************************
 cr12                       : ok=4    changed=0    unreachable=0    failed=0
 
 iida-macbook-pro:ansible-mytelnet iida$
+```
+
+<br><br>
+
+# 2019/01/30 追記
+
+Ciscoのshow techのような大きなデータを受信すると、TCP Zero Windowが発生して受信できないことがあります。
+これを避けるためにPythonのtelnetlib.pyを内部に取り込み、書き換えを行っています。
+
+```text
+iida-macbook-pro:module_utils iida$ diff telnetlib.py ~/.pyenv/versions/3.6.4/lib/python3.6/telnetlib.py
+524,525c524
+<         # buf = self.sock.recv(50)
+<         buf = self.sock.recv(15000)  # fixed by takamitsu-iida 20190130, this shoud be large enough to receive cisco show-tech output.
+---
+>         buf = self.sock.recv(50)
 ```
