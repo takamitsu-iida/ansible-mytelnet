@@ -31,6 +31,7 @@ To do:
 
 """
 
+from __future__ import (absolute_import, division, print_function)  # added by takamitsu-iida 20190130
 
 # Imported modules
 import sys
