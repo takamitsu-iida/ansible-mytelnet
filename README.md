@@ -44,6 +44,13 @@ delegate_toを使っての踏み台経由のtelnetが動かないので大変困
 └── vscode.code-workspace
 ```
 
+以下の４つが必須ファイルです。
+
+- library/mytelnet.py
+- module_utils/mytelnet_util.py
+- module_utils/telnetlib.py
+- plugins/action/mytelnet.py
+
 <br><br>
 
 # ansible.cfg
