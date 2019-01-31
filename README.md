@@ -441,3 +441,18 @@ iida-macbook-pro:module_utils iida$ diff telnetlib.py ~/.pyenv/versions/3.6.4/li
 ---
 >         buf = self.sock.recv(50)
 ```
+
+これにともないPython2でtelnet接続はできなくなっています。
+踏み台を経由する場合は、踏み台上のPythonのバージョンが3であることを確認してください。
+
+```ini
+#
+# 踏み台
+#
+[bastion]
+pg04 ansible_host=10.35.158.20 ansible_user=bastion
+
+[bastion:vars]
+# /usr/bin/pythonがインストールされていないLinuxでansibleを実行する場合は必須
+ansible_python_interpreter = /usr/bin/python3
+```

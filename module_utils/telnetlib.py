@@ -27,11 +27,9 @@ for reading when it is closed).
 To do:
 - option negotiation
 - timeout should be intrinsic to the connection object instead of an
-  option on one of the read calls only
+option on one of the read calls only
 
 """
-
-from __future__ import (absolute_import, division, print_function)  # added by takamitsu-iida 20190130
 
 # Imported modules
 import sys
@@ -195,7 +193,7 @@ class Telnet:
     """
 
     def __init__(self, host=None, port=0,
-                 timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+                timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         """Constructor.
 
         When called without arguments, create an unconnected instance.

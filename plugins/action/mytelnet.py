@@ -57,7 +57,7 @@ class ActionModule(_ActionModule):
     if not os.path.exists(log_path):
       os.mkdir(log_path)
     # tstamp = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(time.time()))
-    tstamp = time.strftime("%Y-%m-%d__%H:%M:%S", time.localtime(time.time()))
+    tstamp = time.strftime("%Y-%m-%d@%H-%M-%S", time.localtime(time.time()))
     filename = '{0}/{1}_{2}.log'.format(log_path, hostname, tstamp)
     open(filename, 'w').write(contents)
 

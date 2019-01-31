@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=C0111,E0611
-
+#
 # (c) 2018, Takamitsu IIDA (@takamitsu-iida)
 #
 # This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,8 @@
 import re
 from time import sleep
 
+# telnetlib.pyの受信バッファが小さすぎてshow techのような大容量の出力が受信できない
+# Python3用のtelnetlib.pyをローカルに保持して直接変更を加える
 # import telnetlib
 from ansible.module_utils.telnetlib import Telnet
 
@@ -119,7 +121,7 @@ def get_connection(module):
   except OSError as e:
     module.fail_json(msg='Failed to connect target host: %s' % to_text(e))
 
-  tn.set_debuglevel(10)
+  # tn.set_debuglevel(10)
 
   module.connection = tn
   return module.connection
