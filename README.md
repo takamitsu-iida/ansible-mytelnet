@@ -449,8 +449,10 @@ iida-macbook-pro:module_utils iida$ diff telnetlib.py ~/.pyenv/versions/3.6.4/li
 >         buf = self.sock.recv(50)
 ```
 
-これにともないPython2でtelnet接続はできなくなっています。
-踏み台を経由する場合は、踏み台上のPythonのバージョンが3であることを確認してください。
+これにともないPython2の環境ではtelnet接続はできなくなっています。
+踏み台を経由する場合は、踏み台上のPythonのバージョンも3であることを確認してください。
+
+どうしてもPython2の環境で動かさなければいけない場合は、Python2用のtelnetlib.pyに差し替えればよいでしょう。
 
 ```ini
 #
